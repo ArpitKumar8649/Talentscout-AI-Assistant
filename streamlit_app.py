@@ -147,10 +147,15 @@ st.markdown("""
         font-style: italic;
         color: #6b7280;
         background: #f9fafb;
-        padding: 0.8rem;
+        padding: 0.8rem 1rem;
         border-radius: 8px;
         border-left: 3px solid #9ca3af;
-        margin: 0.5rem 0;
+        margin: 0.5rem 0 1rem 0;
+        font-size: 0.95rem;
+    }
+    
+    .reasoning-message em {
+        font-style: italic;
     }
     
     .assistant-message {
