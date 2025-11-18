@@ -370,14 +370,14 @@ def render_welcome_message():
     st.markdown("""
     <div class="info-box">
         <h3>👋 Welcome to TalentScout AI Hiring Assistant!</h3>
-        <p>I'm here to help with your initial candidate screening. I'll:</p>
-        <ul>
-            <li>Collect your basic information</li>
-            <li>Understand your technical expertise</li>
-            <li>Ask relevant technical questions</li>
-            <li>Provide a smooth interview experience</li>
+        <p style="font-size: 1.05rem; margin: 1rem 0;">I'm here to help with your initial candidate screening. I'll:</p>
+        <ul style="font-size: 1rem; line-height: 1.8;">
+            <li>📝 Collect your basic information</li>
+            <li>💻 Understand your technical expertise</li>
+            <li>🎯 Ask relevant technical questions</li>
+            <li>✨ Provide a smooth interview experience</li>
         </ul>
-        <p><strong>Ready to begin? Type 'hello' or 'start' to get started!</strong></p>
+        <p style="font-size: 1.1rem; margin-top: 1.5rem;"><strong>✨ Ready to begin? Type 'hello' or 'start' to get started!</strong></p>
     </div>
     """, unsafe_allow_html=True)
 
