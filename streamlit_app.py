@@ -103,6 +103,22 @@ st.markdown("""
         color: #374151 !important;
     }
     
+    /* Override any inherited styles */
+    [data-testid="stChatMessage"] * {
+        color: #374151 !important;
+    }
+    
+    /* Ensure markdown content is visible */
+    .stMarkdown {
+        color: #374151 !important;
+    }
+    
+    .stMarkdown p,
+    .stMarkdown div,
+    .stMarkdown span {
+        color: #374151 !important;
+    }
+    
     /* Avatar Styling */
     [data-testid="chatAvatarIcon-user"] {
         background: #19c37d !important;
