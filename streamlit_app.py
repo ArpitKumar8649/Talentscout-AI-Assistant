@@ -1,12 +1,13 @@
 """
-TalentScout AI Hiring Assistant - Main Streamlit Application
-Phase 1: Basic Setup with Placeholder UI
+TalentScout AI Hiring Assistant - Phase 2 with Letta Integration
+Streaming responses with real-time display
 """
 import streamlit as st
 from pathlib import Path
 from dotenv import load_dotenv
 import os
 import sys
+import time
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -17,6 +18,7 @@ load_dotenv('.env.streamlit')
 from config.settings import settings
 from utils.constants import ConversationStage, REQUIRED_FIELDS
 from utils.helpers import is_exit_keyword
+from services.letta_service import letta_service
 
 # Page configuration
 st.set_page_config(
@@ -26,23 +28,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for beautiful UI
+# Custom CSS
 st.markdown("""
 <style>
-    /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
     
-    /* Global Styles */
     * {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
     
-    /* Main container background */
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
     
-    /* Main header styling */
     .main-header {
         font-size: 3rem;
         font-weight: 800;
@@ -52,11 +50,9 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         letter-spacing: -0.5px;
     }
     
-    /* Subheader styling */
     .sub-header {
         font-size: 1.1rem;
         color: #64748b;
@@ -65,24 +61,13 @@ st.markdown("""
         font-weight: 500;
     }
     
-    /* Chat container */
     .stChatMessage {
         border-radius: 12px !important;
         padding: 1.2rem !important;
         margin: 0.8rem 0 !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-        animation: slideIn 0.3s ease-out;
     }
     
-    /* User message */
-    [data-testid="stChatMessageContent"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        color: white !important;
-        border-radius: 12px;
-        padding: 1rem;
-    }
-    
-    /* Sidebar styling */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
         border-right: 1px solid #e2e8f0;
@@ -97,266 +82,200 @@ st.markdown("""
         border-bottom: 3px solid #667eea;
     }
     
-    /* Info card */
     .info-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        padding: 1.2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        margin-bottom: 1rem;
-        border: 1px solid #e2e8f0;
-        transition: transform 0.2s ease;
-    }
-    
-    .info-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border-left: 4px solid #667eea;
     }
     
     .info-label {
-        font-weight: 600;
-        color: #475569;
         font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 0.3rem;
     }
     
     .info-value {
+        font-size: 1rem;
         color: #1e293b;
-        font-size: 1.1rem;
         font-weight: 500;
-        margin-top: 0.3rem;
     }
     
-    /* Progress bar styling */
     .progress-container {
+        width: 100%;
+        height: 12px;
         background: #e2e8f0;
-        border-radius: 20px;
-        height: 24px;
-        margin: 1.5rem 0;
+        border-radius: 6px;
         overflow: hidden;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .progress-bar {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         height: 100%;
-        border-radius: 20px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 6px;
         transition: width 0.5s ease;
-        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 0.85rem;
+        animation: shimmer 2s infinite;
     }
     
-    /* Status badge */
+    @keyframes shimmer {
+        0% { opacity: 1; }
+        50% { opacity: 0.8; }
+        100% { opacity: 1; }
+    }
+    
     .status-badge {
         display: inline-block;
-        padding: 0.4rem 1rem;
+        padding: 0.4rem 0.8rem;
         border-radius: 20px;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         font-weight: 600;
         margin: 0.3rem;
-        transition: all 0.2s ease;
     }
     
     .badge-pending {
-        background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
-        color: #c2410c;
-        border: 1px solid #fdba74;
-    }
-    
-    .badge-collected {
-        background: linear-gradient(135deg, #f0fdf4 0%, #bbf7d0 100%);
-        color: #15803d;
-        border: 1px solid #86efac;
-    }
-    
-    /* Info box */
-    .info-box {
-        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-        border-left: 5px solid #3b82f6;
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin: 1.5rem 0;
-        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
-    }
-    
-    .info-box h3 {
-        color: #1e40af;
-        margin-top: 0;
-        font-size: 1.3rem;
-        font-weight: 700;
-    }
-    
-    .info-box p, .info-box ul {
-        color: #1e3a8a;
-        line-height: 1.6;
-    }
-    
-    .warning-box {
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-        border-left: 5px solid #f59e0b;
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin: 1.5rem 0;
-        box-shadow: 0 4px 6px rgba(245, 158, 11, 0.1);
-    }
-    
-    .warning-box h4 {
+        background: #fef3c7;
         color: #92400e;
-        margin-top: 0;
-        font-size: 1.2rem;
-        font-weight: 700;
     }
     
-    .warning-box p, .warning-box ul {
-        color: #78350f;
+    .reasoning-message {
+        font-style: italic;
+        color: #6b7280;
+        background: #f9fafb;
+        padding: 0.8rem;
+        border-radius: 8px;
+        border-left: 3px solid #9ca3af;
+        margin: 0.5rem 0;
+    }
+    
+    .assistant-message {
+        color: #1f2937;
         line-height: 1.6;
     }
     
-    /* Chat input */
-    .stChatInput {
-        border-radius: 12px !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-    }
-    
-    /* Button styling */
-    .stButton button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
+    .tool-call {
+        background: #dbeafe;
+        padding: 0.6rem;
         border-radius: 8px;
-        padding: 0.6rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+        border-left: 3px solid #3b82f6;
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
     }
     
-    .stButton button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    .connection-status {
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
     }
     
-    /* Animations */
-    @keyframes slideIn {
-        from { 
-            opacity: 0; 
-            transform: translateX(-20px);
-        }
-        to { 
-            opacity: 1; 
-            transform: translateX(0);
-        }
+    .status-connected {
+        background: #d1fae5;
+        border: 1px solid #10b981;
+        color: #065f46;
     }
     
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    /* Success/Error messages */
-    .stSuccess, .stError, .stWarning, .stInfo {
-        border-radius: 12px !important;
-        padding: 1rem 1.5rem !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+    .status-error {
+        background: #fee2e2;
+        border: 1px solid #ef4444;
+        color: #991b1b;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
 def initialize_session_state():
-    """Initialize Streamlit session state variables"""
+    """Initialize Streamlit session state"""
     if 'messages' not in st.session_state:
         st.session_state.messages = []
-    
-    if 'candidate_data' not in st.session_state:
-        st.session_state.candidate_data = {
-            'full_name': None,
-            'email': None,
-            'phone': None,
-            'years_experience': None,
-            'desired_positions': None,
-            'current_location': None,
-            'tech_stack': None
-        }
-    
-    if 'conversation_stage' not in st.session_state:
-        st.session_state.conversation_stage = ConversationStage.GREETING.value
     
     if 'letta_connected' not in st.session_state:
         st.session_state.letta_connected = False
     
     if 'conversation_started' not in st.session_state:
         st.session_state.conversation_started = False
+    
+    if 'current_reasoning' not in st.session_state:
+        st.session_state.current_reasoning = ""
+    
+    if 'current_assistant' not in st.session_state:
+        st.session_state.current_assistant = ""
+    
+    if 'agent_info' not in st.session_state:
+        st.session_state.agent_info = None
+
+
+def connect_to_letta():
+    """Connect to Letta service"""
+    if not st.session_state.letta_connected:
+        with st.spinner("Connecting to Letta Agent..."):
+            success = letta_service.connect()
+            if success:
+                st.session_state.letta_connected = True
+                st.session_state.agent_info = letta_service.get_agent_info()
+                return True
+            else:
+                st.error("❌ Failed to connect to Letta Agent. Check your credentials.")
+                return False
+    return True
 
 
 def render_sidebar():
-    """Render sidebar with candidate summary"""
+    """Render sidebar"""
     with st.sidebar:
-        st.markdown('<p class="sidebar-header">📋 Candidate Summary</p>', unsafe_allow_html=True)
+        st.markdown('<p class="sidebar-header">📋 Agent Status</p>', unsafe_allow_html=True)
         
-        # Progress indicator
-        collected_fields = sum(1 for v in st.session_state.candidate_data.values() if v is not None)
-        total_fields = len(REQUIRED_FIELDS)
-        progress_percentage = (collected_fields / total_fields) * 100
-        
-        st.markdown(f"""
-        <div style="margin: 1rem 0;">
-            <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">
-                Information Collected: {collected_fields}/{total_fields}
-            </p>
-            <div class="progress-container">
-                <div class="progress-bar" style="width: {progress_percentage}%;"></div>
+        # Connection status
+        if st.session_state.letta_connected:
+            st.markdown("""
+            <div class="connection-status status-connected">
+                <strong>✅ Letta Agent Connected</strong>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+            
+            if st.session_state.agent_info:
+                info = st.session_state.agent_info
+                st.markdown(f"""
+                <div class="info-card">
+                    <p class="info-label">Agent ID</p>
+                    <p class="info-value" style="font-size: 0.85rem;">{info.get('id', 'N/A')}</p>
+                </div>
+                <div class="info-card">
+                    <p class="info-label">Model</p>
+                    <p class="info-value">{info.get('model', 'N/A')}</p>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="connection-status status-error">
+                <strong>⚠️ Not Connected</strong>
+            </div>
+            """, unsafe_allow_html=True)
         
-        # Display collected information
         st.markdown("---")
         
-        if collected_fields == 0:
-            st.info("💬 Start the conversation to collect candidate information.")
-        else:
-            for field, value in st.session_state.candidate_data.items():
-                field_name = field.replace('_', ' ').title()
-                if value:
-                    st.markdown(f"""
-                    <div class="info-card">
-                        <p class="info-label">{field_name}</p>
-                        <p class="info-value">{value}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-                    <span class="status-badge badge-pending">{field_name}: Pending</span>
-                    """, unsafe_allow_html=True)
+        # Conversation stats
+        st.subheader("💬 Conversation Stats")
+        message_count = len([m for m in st.session_state.messages if m.get('role') == 'user'])
+        st.metric("Messages Sent", message_count)
         
         st.markdown("---")
         
         # About section
         st.subheader("ℹ️ About")
         st.markdown("""
-        This AI assistant helps with initial candidate screening by:
-        - 📝 Gathering essential information
-        - 💻 Assessing technical skills  
-        - 🎯 Generating relevant questions
-        - 🤝 Maintaining professional conversation
+        This AI hiring assistant:
+        - 📝 Collects candidate information
+        - 💻 Assesses technical skills  
+        - 🎯 Generates relevant questions
+        - 🤖 Uses Letta for stateful memory
         """)
         
         st.markdown("---")
-        
-        # Status section
-        st.subheader("⚙️ Status")
-        if st.session_state.letta_connected:
-            st.success("✅ Letta Agent Connected")
-        else:
-            st.warning("⚠️ Letta Integration Pending")
-            st.info("Phase 2 will integrate Letta agent")
         
         # Reset button
         if st.button("🔄 Reset Conversation", use_container_width=True):
@@ -365,118 +284,117 @@ def render_sidebar():
             st.rerun()
 
 
-def render_welcome_message():
-    """Render welcome message for new conversations"""
-    st.markdown("""
-    <div class="info-box">
-        <h3>👋 Welcome to TalentScout AI Hiring Assistant!</h3>
-        <p style="font-size: 1.05rem; margin: 1rem 0;">I'm here to help with your initial candidate screening. I'll:</p>
-        <ul style="font-size: 1rem; line-height: 1.8;">
-            <li>📝 Collect your basic information</li>
-            <li>💻 Understand your technical expertise</li>
-            <li>🎯 Ask relevant technical questions</li>
-            <li>✨ Provide a smooth interview experience</li>
-        </ul>
-        <p style="font-size: 1.1rem; margin-top: 1.5rem;"><strong>✨ Ready to begin? Type 'hello' or 'start' to get started!</strong></p>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def render_phase_warning():
-    """Render warning about Phase 1 limitations"""
-    st.markdown("""
-    <div class="warning-box">
-        <h4>⚠️ Phase 1: Development Mode</h4>
-        <p style="font-size: 1rem; margin: 1rem 0;">Currently showing placeholder functionality. Features coming in next phases:</p>
-        <ul style="font-size: 0.95rem; line-height: 1.8;">
-            <li><strong>Phase 2:</strong> 🤖 Letta Agent Integration</li>
-            <li><strong>Phase 3:</strong> 💬 Conversation Flow Logic</li>
-            <li><strong>Phase 4:</strong> 🎯 Technical Question Generation</li>
-        </ul>
-        <p style="font-size: 0.95rem; margin-top: 1rem;"><em>💡 The chatbot will provide intelligent responses once Letta credentials are configured.</em></p>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def handle_user_input(user_input: str):
-    """Handle user input and generate responses (Phase 1 placeholder)"""
+def render_message(message):
+    """Render a single message"""
+    role = message.get('role')
+    content = message.get('content', '')
+    msg_type = message.get('type', 'text')
     
-    # Add user message to history
-    st.session_state.messages.append({
-        "role": "user",
-        "content": user_input
-    })
+    if role == 'user':
+        with st.chat_message("user"):
+            st.write(content)
     
-    # Check for exit keywords
-    if is_exit_keyword(user_input):
-        response = """
-        Thank you for your time! Your information has been recorded. 
-        Our team will review your profile and get back to you soon.
-        
-        Have a great day! 👋
-        """
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": response
-        })
-        return
-    
-    # Placeholder responses for Phase 1
-    if not st.session_state.conversation_started:
-        response = """
-        Great! Let's get started with your screening interview.
-        
-        First, could you please tell me your full name?
-        """
-        st.session_state.conversation_started = True
-    else:
-        # Generate contextual placeholder responses
-        message_count = len([m for m in st.session_state.messages if m['role'] == 'user'])
-        
-        if message_count == 2:
-            response = "Thank you! Now, what's your email address?"
-        elif message_count == 3:
-            response = "Perfect! Could you share your phone number?"
-        elif message_count == 4:
-            response = "Got it! How many years of experience do you have?"
-        elif message_count == 5:
-            response = "Excellent! What position(s) are you interested in?"
-        elif message_count == 6:
-            response = "Great! Where are you currently located?"
-        elif message_count == 7:
-            response = """
-            Perfect! Now, let's talk about your technical skills.
+    elif role == 'assistant':
+        with st.chat_message("assistant"):
+            # Show reasoning if present
+            if message.get('reasoning'):
+                st.markdown(f"""
+                <div class="reasoning-message">
+                    <strong>💭 Thinking:</strong> {message['reasoning']}
+                </div>
+                """, unsafe_allow_html=True)
             
-            Could you please list your tech stack? Include:
-            - Programming languages (e.g., Python, JavaScript)
-            - Frameworks (e.g., React, Django)
-            - Databases (e.g., MongoDB, PostgreSQL)
-            - Tools (e.g., Docker, AWS)
-            """
-        else:
-            response = """
-            🔧 **Phase 1 Placeholder Response**
+            # Show assistant message
+            if content:
+                st.markdown(f'<div class="assistant-message">{content}</div>', unsafe_allow_html=True)
             
-            In Phase 2, the Letta agent will:
-            - Understand your responses contextually
-            - Update memory blocks automatically  
-            - Generate relevant technical questions
-            - Maintain natural conversation flow
+            # Show tool calls if present
+            if message.get('tool_calls'):
+                for tool_call in message['tool_calls']:
+                    st.markdown(f"""
+                    <div class="tool-call">
+                        🔧 <strong>Tool:</strong> {tool_call}
+                    </div>
+                    """, unsafe_allow_html=True)
+
+
+def handle_stream_response(user_message: str):
+    """Handle streaming response from Letta"""
+    try:
+        # Track message components
+        reasoning_parts = {}
+        assistant_parts = {}
+        tool_calls = []
+        
+        # Create placeholder for streaming
+        with st.chat_message("assistant"):
+            reasoning_placeholder = st.empty()
+            assistant_placeholder = st.empty()
             
-            For now, I'm collecting your input and demonstrating the UI!
-            Type 'bye' to end the conversation.
-            """
+            # Stream responses
+            for chunk in letta_service.send_message_stream(user_message, stream_tokens=True):
+                chunk_type = chunk.get('type')
+                
+                if chunk_type == 'reasoning':
+                    # Accumulate reasoning
+                    msg_id = chunk.get('message_id', 'default')
+                    content = chunk.get('content', '')
+                    reasoning_parts[msg_id] = content
+                    
+                    # Display reasoning in italic
+                    full_reasoning = ' '.join(reasoning_parts.values())
+                    reasoning_placeholder.markdown(f"""
+                    <div class="reasoning-message">
+                        <strong>💭 Thinking:</strong> {full_reasoning}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                elif chunk_type == 'assistant':
+                    # Accumulate assistant message
+                    msg_id = chunk.get('message_id', 'default')
+                    content = chunk.get('content', '')
+                    assistant_parts[msg_id] = content
+                    
+                    # Display assistant message
+                    full_assistant = ' '.join(assistant_parts.values())
+                    assistant_placeholder.markdown(
+                        f'<div class="assistant-message">{full_assistant}</div>', 
+                        unsafe_allow_html=True
+                    )
+                
+                elif chunk_type == 'tool_call':
+                    tool_name = chunk.get('tool_name', 'unknown')
+                    tool_calls.append(tool_name)
+                    st.markdown(f"""
+                    <div class="tool-call">
+                        🔧 <strong>Calling tool:</strong> {tool_name}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                elif chunk_type == 'error':
+                    st.error(f"❌ {chunk.get('content', 'Unknown error')}")
+                    return None
+        
+        # Store complete message
+        full_reasoning = ' '.join(reasoning_parts.values())
+        full_assistant = ' '.join(assistant_parts.values())
+        
+        return {
+            'role': 'assistant',
+            'content': full_assistant,
+            'reasoning': full_reasoning,
+            'tool_calls': tool_calls
+        }
     
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": response
-    })
+    except Exception as e:
+        st.error(f"❌ Error during streaming: {str(e)}")
+        return None
 
 
 def main():
-    """Main application entry point"""
+    """Main application"""
     
-    # Initialize session state
+    # Initialize
     initialize_session_state()
     
     # Header
@@ -485,10 +403,14 @@ def main():
         unsafe_allow_html=True
     )
     st.markdown(
-        '<p class="sub-header">Powered by Letta Agent Framework 🤖</p>',
+        '<p class="sub-header">Powered by Letta Agent Framework with Streaming 🚀</p>',
         unsafe_allow_html=True
     )
     st.markdown('---')
+    
+    # Connect to Letta
+    if not st.session_state.letta_connected:
+        connect_to_letta()
     
     # Render sidebar
     render_sidebar()
@@ -496,34 +418,51 @@ def main():
     # Main chat interface
     st.subheader("💬 Chat Interface")
     
-    # Show phase warning
-    render_phase_warning()
-    
-    # Display chat messages
-    chat_container = st.container()
-    with chat_container:
-        if len(st.session_state.messages) == 0:
-            render_welcome_message()
-        else:
-            for message in st.session_state.messages:
-                with st.chat_message(message["role"]):
-                    st.write(message["content"])
+    # Display chat history
+    if len(st.session_state.messages) == 0:
+        st.markdown("""
+        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3>👋 Welcome to TalentScout AI!</h3>
+            <p style="font-size: 1.1rem; margin: 1rem 0;">
+                I'm an AI hiring assistant powered by Letta. I'll help screen candidates by:
+            </p>
+            <ul style="font-size: 1rem; line-height: 1.8;">
+                <li>📝 Collecting essential information</li>
+                <li>💻 Understanding technical expertise</li>
+                <li>🎯 Asking relevant questions</li>
+                <li>🧠 Remembering context throughout our conversation</li>
+            </ul>
+            <p style="font-size: 1.1rem; margin-top: 1.5rem;">
+                <strong>✨ Ready to begin? Just type your message below!</strong>
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        for message in st.session_state.messages:
+            render_message(message)
     
     # Chat input
-    if prompt := st.chat_input("Type your message here...", key="user_input"):
-        # Display user message immediately
-        with st.chat_message("user"):
-            st.write(prompt)
-        
-        # Process and respond
-        handle_user_input(prompt)
-        
-        # Display assistant response
-        with st.chat_message("assistant"):
-            st.write(st.session_state.messages[-1]["content"])
-        
-        # Rerun to update UI
-        st.rerun()
+    if st.session_state.letta_connected:
+        if prompt := st.chat_input("Type your message here...", key="user_input"):
+            # Display user message
+            st.session_state.messages.append({
+                'role': 'user',
+                'content': prompt
+            })
+            
+            with st.chat_message("user"):
+                st.write(prompt)
+            
+            # Get streaming response
+            response = handle_stream_response(prompt)
+            
+            if response:
+                st.session_state.messages.append(response)
+            
+            # Rerun to show updated messages
+            st.rerun()
+    else:
+        st.warning("⚠️ Please wait for Letta connection to be established.")
 
 
 if __name__ == "__main__":
