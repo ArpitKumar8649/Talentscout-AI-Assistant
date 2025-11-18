@@ -520,6 +520,9 @@ def handle_stream_response(user_message: str):
             chunk_type = chunk.get('type')
             
             if chunk_type == 'reasoning':
+                # Remove thinking indicator once we start getting content
+                thinking_indicator.empty()
+                
                 # Accumulate reasoning - keep SEPARATE from assistant
                 msg_id = chunk.get('message_id', 'default')
                 content = chunk.get('content', '')
