@@ -356,17 +356,28 @@ def handle_stream_response(user_message: str):
                     """, unsafe_allow_html=True)
             
             elif chunk_type == 'assistant':
-                # Accumulate ONLY assistant message - NO reasoning
+                # Accumulate assistant message
                 msg_id = chunk.get('message_id', 'default')
                 content = chunk.get('content', '')
                 assistant_parts[msg_id] = content
                 
-                # Display ONLY assistant message - separate from reasoning
-                full_assistant = ' '.join(assistant_parts.values())
-                if full_assistant.strip():
+                # Get full texts
+                full_reasoning = ' '.join(reasoning_parts.values()).strip()
+                full_assistant = ' '.join(assistant_parts.values()).strip()
+                
+                # CORE FIX: Remove reasoning text from assistant message if it's duplicated
+                # Letta includes reasoning in assistant message, we need to extract only the response
+                if full_reasoning and full_assistant.startswith(full_reasoning):
+                    # Remove the reasoning part from assistant message
+                    clean_assistant = full_assistant[len(full_reasoning):].strip()
+                else:
+                    clean_assistant = full_assistant
+                
+                # Display ONLY clean assistant message - without reasoning
+                if clean_assistant:
                     with assistant_container:
                         with st.chat_message("assistant"):
-                            st.write(full_assistant)
+                            st.write(clean_assistant)
             
             elif chunk_type == 'tool_call':
                 tool_name = chunk.get('tool_name', 'unknown')
@@ -381,15 +392,21 @@ def handle_stream_response(user_message: str):
                 st.error(f"❌ {chunk.get('content', 'Unknown error')}")
                 return None
         
-        # Store complete message with reasoning and content SEPARATE
+        # Store complete message with reasoning removed from assistant content
         full_reasoning = ' '.join(reasoning_parts.values()).strip()
         full_assistant = ' '.join(assistant_parts.values()).strip()
         
-        # Return message with ONLY assistant content, reasoning stored separately
+        # Remove reasoning from assistant content if duplicated
+        if full_reasoning and full_assistant.startswith(full_reasoning):
+            clean_assistant = full_assistant[len(full_reasoning):].strip()
+        else:
+            clean_assistant = full_assistant
+        
+        # Return message with ONLY clean assistant content
         return {
             'role': 'assistant',
-            'content': full_assistant,  # ONLY assistant message
-            'reasoning': full_reasoning,  # ONLY reasoning - displayed separately
+            'content': clean_assistant,  # Clean assistant message WITHOUT reasoning
+            'reasoning': '',  # Don't store reasoning to avoid duplication on rerun
             'tool_calls': tool_calls
         }
     
