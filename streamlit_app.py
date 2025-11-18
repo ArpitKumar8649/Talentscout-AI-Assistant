@@ -387,13 +387,13 @@ def render_phase_warning():
     st.markdown("""
     <div class="warning-box">
         <h4>⚠️ Phase 1: Development Mode</h4>
-        <p>Currently showing placeholder functionality. Features coming in next phases:</p>
-        <ul>
-            <li><strong>Phase 2:</strong> Letta Agent Integration</li>
-            <li><strong>Phase 3:</strong> Conversation Flow Logic</li>
-            <li><strong>Phase 4:</strong> Technical Question Generation</li>
+        <p style="font-size: 1rem; margin: 1rem 0;">Currently showing placeholder functionality. Features coming in next phases:</p>
+        <ul style="font-size: 0.95rem; line-height: 1.8;">
+            <li><strong>Phase 2:</strong> 🤖 Letta Agent Integration</li>
+            <li><strong>Phase 3:</strong> 💬 Conversation Flow Logic</li>
+            <li><strong>Phase 4:</strong> 🎯 Technical Question Generation</li>
         </ul>
-        <p><em>The chatbot will provide intelligent responses once Letta credentials are configured.</em></p>
+        <p style="font-size: 0.95rem; margin-top: 1rem;"><em>💡 The chatbot will provide intelligent responses once Letta credentials are configured.</em></p>
     </div>
     """, unsafe_allow_html=True)
 
