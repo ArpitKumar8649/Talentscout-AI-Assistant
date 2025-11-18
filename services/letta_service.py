@@ -95,10 +95,17 @@ class LettaService:
                 return self._handle_assistant_message(chunk, accumulators)
             
             elif msg_type == 'tool_call_message':
+                tool_call = getattr(chunk, 'tool_call', None)
+                tool_name = 'unknown'
+                if tool_call:
+                    if hasattr(tool_call, 'name'):
+                        tool_name = tool_call.name
+                    elif isinstance(tool_call, dict):
+                        tool_name = tool_call.get('name', 'unknown')
                 return {
                     "type": "tool_call",
-                    "content": f"Calling tool: {getattr(chunk, 'tool_call', {}).get('name', 'unknown')}",
-                    "tool_name": getattr(chunk, 'tool_call', {}).get('name', 'unknown')
+                    "content": f"Calling tool: {tool_name}",
+                    "tool_name": tool_name
                 }
             
             elif msg_type == 'tool_return_message':
