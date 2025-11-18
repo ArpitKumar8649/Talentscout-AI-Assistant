@@ -261,36 +261,6 @@ st.markdown("""
         background: #9ca3af;
     }
     
-    /* Welcome Card */
-    .welcome-card {
-        background: #f7f7f8;
-        padding: 2rem;
-        border-radius: 12px;
-        margin: 2rem auto;
-        max-width: 800px;
-        text-align: center;
-    }
-    
-    .welcome-card h3 {
-        color: #202123;
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
-    
-    .welcome-card p {
-        color: #6e6e80;
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-    
-    .welcome-card ul {
-        text-align: left;
-        color: #374151;
-        font-size: 0.95rem;
-        line-height: 1.8;
-        margin: 1rem 0;
-    }
 </style>
 """, unsafe_allow_html=True)
 
