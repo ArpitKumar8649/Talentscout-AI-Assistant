@@ -193,11 +193,11 @@ class LettaService:
             return None
         
         try:
-            agent = self.client.agents.get(self.agent_id)
+            agent = self.client.agents.retrieve(self.agent_id)
             return {
                 "id": agent.id,
                 "name": getattr(agent, 'name', 'Unknown'),
-                "model": getattr(agent, 'model', 'Unknown'),
+                "model": getattr(agent, 'llm_config', {}).model if hasattr(agent, 'llm_config') else 'Unknown',
                 "created_at": getattr(agent, 'created_at', 'Unknown')
             }
         except Exception as e:
