@@ -38,14 +38,14 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
     
-    /* Main App Background - Clean White */
+    /* Main App Background - Dark Theme */
     .stApp {
-        background: #ffffff;
+        background: #343541;
     }
     
     /* Main Content Area */
     section[data-testid="stAppViewContainer"] {
-        background: #ffffff;
+        background: #343541;
         padding-top: 0 !important;
     }
     
