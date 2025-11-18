@@ -299,21 +299,21 @@ def render_message(message):
             st.write(content)
     
     elif role == 'assistant':
-        # Show reasoning separately in italic if present
-        if message.get('reasoning'):
+        # Show reasoning ONLY in italic - separate from assistant message
+        if message.get('reasoning') and message['reasoning'].strip():
             st.markdown(f"""
             <div class="reasoning-message">
                 <em>💭 {message['reasoning']}</em>
             </div>
             """, unsafe_allow_html=True)
         
-        # Show assistant message in separate chat bubble
-        if content:
+        # Show ONLY assistant message in chat bubble - NO reasoning mixed in
+        if content and content.strip():
             with st.chat_message("assistant"):
                 st.write(content)
         
         # Show tool calls if present
-        if message.get('tool_calls'):
+        if message.get('tool_calls') and len(message['tool_calls']) > 0:
             for tool_call in message['tool_calls']:
                 st.markdown(f"""
                 <div class="tool-call">
