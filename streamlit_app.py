@@ -288,34 +288,33 @@ def render_message(message):
     """Render a single message"""
     role = message.get('role')
     content = message.get('content', '')
-    msg_type = message.get('type', 'text')
     
     if role == 'user':
         with st.chat_message("user"):
             st.write(content)
     
     elif role == 'assistant':
-        with st.chat_message("assistant"):
-            # Show reasoning if present
-            if message.get('reasoning'):
+        # Show reasoning separately in italic if present
+        if message.get('reasoning'):
+            st.markdown(f"""
+            <div class="reasoning-message">
+                <em>💭 {message['reasoning']}</em>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Show assistant message in separate chat bubble
+        if content:
+            with st.chat_message("assistant"):
+                st.write(content)
+        
+        # Show tool calls if present
+        if message.get('tool_calls'):
+            for tool_call in message['tool_calls']:
                 st.markdown(f"""
-                <div class="reasoning-message">
-                    <strong>💭 Thinking:</strong> {message['reasoning']}
+                <div class="tool-call">
+                    🔧 <strong>Tool:</strong> {tool_call}
                 </div>
                 """, unsafe_allow_html=True)
-            
-            # Show assistant message
-            if content:
-                st.markdown(f'<div class="assistant-message">{content}</div>', unsafe_allow_html=True)
-            
-            # Show tool calls if present
-            if message.get('tool_calls'):
-                for tool_call in message['tool_calls']:
-                    st.markdown(f"""
-                    <div class="tool-call">
-                        🔧 <strong>Tool:</strong> {tool_call}
-                    </div>
-                    """, unsafe_allow_html=True)
 
 
 def handle_stream_response(user_message: str):
