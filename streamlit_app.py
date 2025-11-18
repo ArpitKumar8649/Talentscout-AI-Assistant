@@ -29,129 +29,241 @@ st.set_page_config(
 # Custom CSS for beautiful UI
 st.markdown("""
 <style>
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    
+    /* Global Styles */
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    /* Main container background */
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    
     /* Main header styling */
     .main-header {
-        font-size: 2.8rem;
-        font-weight: 700;
-        color: #1f77b4;
+        font-size: 3rem;
+        font-weight: 800;
         text-align: center;
-        padding: 1.5rem 0;
+        padding: 2rem 0 1rem 0;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        letter-spacing: -0.5px;
     }
     
     /* Subheader styling */
     .sub-header {
-        font-size: 1.2rem;
-        color: #666;
+        font-size: 1.1rem;
+        color: #64748b;
         text-align: center;
         margin-bottom: 2rem;
+        font-weight: 500;
     }
     
-    /* Chat message styling */
-    .chat-message {
+    /* Chat container */
+    .stChatMessage {
+        border-radius: 12px !important;
+        padding: 1.2rem !important;
+        margin: 0.8rem 0 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    /* User message */
+    [data-testid="stChatMessageContent"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border-radius: 12px;
         padding: 1rem;
-        border-radius: 0.8rem;
-        margin: 0.5rem 0;
-        animation: fadeIn 0.3s ease-in;
-    }
-    
-    .user-message {
-        background-color: #e3f2fd;
-        border-left: 4px solid #2196f3;
-    }
-    
-    .assistant-message {
-        background-color: #f5f5f5;
-        border-left: 4px solid #4caf50;
     }
     
     /* Sidebar styling */
-    .sidebar-header {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 1rem;
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border-right: 1px solid #e2e8f0;
     }
     
+    .sidebar-header {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid #667eea;
+    }
+    
+    /* Info card */
     .info-card {
-        background: white;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 1.2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.07);
         margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+        transition: transform 0.2s ease;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
     }
     
     .info-label {
         font-weight: 600;
-        color: #555;
-        font-size: 0.9rem;
+        color: #475569;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.3rem;
     }
     
     .info-value {
-        color: #333;
-        font-size: 1rem;
+        color: #1e293b;
+        font-size: 1.1rem;
+        font-weight: 500;
         margin-top: 0.3rem;
     }
     
     /* Progress bar styling */
     .progress-container {
-        background: #e0e0e0;
-        border-radius: 10px;
-        height: 20px;
-        margin: 1rem 0;
+        background: #e2e8f0;
+        border-radius: 20px;
+        height: 24px;
+        margin: 1.5rem 0;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .progress-bar {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         height: 100%;
-        border-radius: 10px;
-        transition: width 0.3s ease;
+        border-radius: 20px;
+        transition: width 0.5s ease;
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
     }
     
     /* Status badge */
     .status-badge {
         display: inline-block;
-        padding: 0.3rem 0.8rem;
+        padding: 0.4rem 1rem;
         border-radius: 20px;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
-        margin: 0.2rem;
+        margin: 0.3rem;
+        transition: all 0.2s ease;
     }
     
     .badge-pending {
-        background-color: #fff3e0;
-        color: #f57c00;
+        background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+        color: #c2410c;
+        border: 1px solid #fdba74;
     }
     
     .badge-collected {
-        background-color: #e8f5e9;
-        color: #2e7d32;
-    }
-    
-    /* Animation */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        background: linear-gradient(135deg, #f0fdf4 0%, #bbf7d0 100%);
+        color: #15803d;
+        border: 1px solid #86efac;
     }
     
     /* Info box */
     .info-box {
-        background: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border-left: 5px solid #3b82f6;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);
+    }
+    
+    .info-box h3 {
+        color: #1e40af;
+        margin-top: 0;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    
+    .info-box p, .info-box ul {
+        color: #1e3a8a;
+        line-height: 1.6;
     }
     
     .warning-box {
-        background: #fff3e0;
-        border-left: 4px solid #ff9800;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-left: 5px solid #f59e0b;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 6px rgba(245, 158, 11, 0.1);
+    }
+    
+    .warning-box h4 {
+        color: #92400e;
+        margin-top: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+    
+    .warning-box p, .warning-box ul {
+        color: #78350f;
+        line-height: 1.6;
+    }
+    
+    /* Chat input */
+    .stChatInput {
+        border-radius: 12px !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* Button styling */
+    .stButton button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+    }
+    
+    .stButton button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Animations */
+    @keyframes slideIn {
+        from { 
+            opacity: 0; 
+            transform: translateX(-20px);
+        }
+        to { 
+            opacity: 1; 
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    /* Success/Error messages */
+    .stSuccess, .stError, .stWarning, .stInfo {
+        border-radius: 12px !important;
+        padding: 1rem 1.5rem !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
     }
 </style>
 """, unsafe_allow_html=True)
