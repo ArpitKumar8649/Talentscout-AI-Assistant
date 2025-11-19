@@ -621,6 +621,33 @@ def main():
     # Initialize
     initialize_session_state()
     
+    # Export buttons in top right corner
+    col1, col2, col3 = st.columns([6, 1, 1])
+    
+    with col2:
+        if st.session_state.messages:
+            txt_content = export_chat_as_txt()
+            if txt_content:
+                st.download_button(
+                    label="📄 TXT",
+                    data=txt_content,
+                    file_name=f"chat_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                    mime="text/plain",
+                    help="Export chat as TXT file"
+                )
+    
+    with col3:
+        if st.session_state.messages:
+            md_content = export_chat_as_markdown()
+            if md_content:
+                st.download_button(
+                    label="📝 MD",
+                    data=md_content,
+                    file_name=f"chat_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+                    mime="text/markdown",
+                    help="Export chat as Markdown file"
+                )
+    
     # Header - Clean and Simple
     st.markdown(
         '''
