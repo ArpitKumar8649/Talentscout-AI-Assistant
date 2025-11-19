@@ -524,13 +524,9 @@ def handle_stream_response(user_message: str):
                             st.write(clean_assistant)
             
             elif chunk_type == 'tool_call':
+                # Track tool calls but don't display them
                 tool_name = chunk.get('tool_name', 'unknown')
                 tool_calls.append(tool_name)
-                st.markdown(f"""
-                <div class="tool-call">
-                    🔧 <strong>Calling tool:</strong> {tool_name}
-                </div>
-                """, unsafe_allow_html=True)
             
             elif chunk_type == 'error':
                 st.error(f"❌ {chunk.get('content', 'Unknown error')}")
