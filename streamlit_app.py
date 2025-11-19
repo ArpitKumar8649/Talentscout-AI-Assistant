@@ -102,11 +102,21 @@ st.markdown("""
     }
     
     .sub-header {
-        font-size: 0.875rem;
+        font-size: clamp(0.75rem, 2.5vw, 0.95rem);
         color: #9ca3af;
         text-align: center;
         margin-bottom: 1rem;
         font-weight: 400;
+        padding: 0 1rem;
+    }
+    
+    /* Mobile responsiveness for sub-header */
+    @media (max-width: 768px) {
+        .sub-header {
+            font-size: 0.8rem;
+            padding: 0 0.5rem;
+            margin-bottom: 0.75rem;
+        }
     }
     
     /* Chat Messages - Dark Theme */
