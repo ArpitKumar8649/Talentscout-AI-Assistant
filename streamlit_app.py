@@ -413,54 +413,103 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-def get_session_file_path():
-    """Get path to session persistence file"""
-    session_dir = Path("/tmp/talentscout_sessions")
-    session_dir.mkdir(exist_ok=True)
-    
-    # Use Streamlit's session ID if available, otherwise use a cookie-based ID
-    session_id = st.session_state.get('session_id')
-    if not session_id:
-        # Generate a new session ID
-        import hashlib
-        import uuid
-        session_id = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()
-        st.session_state.session_id = session_id
-    
-    return session_dir / f"session_{session_id}.json"
+def load_messages_from_indexeddb():
+    """Load messages from browser IndexedDB"""
+    load_script = """
+    <script>
+    (function() {
+        const dbName = 'TalentScoutDB';
+        const storeName = 'conversations';
+        
+        // Open IndexedDB
+        const request = indexedDB.open(dbName, 1);
+        
+        request.onerror = function() {
+            console.error('Failed to open IndexedDB');
+            window.parent.postMessage({type: 'indexeddb_loaded', messages: []}, '*');
+        };
+        
+        request.onsuccess = function(event) {
+            const db = event.target.result;
+            const transaction = db.transaction([storeName], 'readonly');
+            const objectStore = transaction.objectStore(storeName);
+            const getRequest = objectStore.get('current_conversation');
+            
+            getRequest.onsuccess = function() {
+                const data = getRequest.result;
+                const messages = data ? data.messages : [];
+                window.parent.postMessage({type: 'indexeddb_loaded', messages: messages}, '*');
+            };
+            
+            getRequest.onerror = function() {
+                window.parent.postMessage({type: 'indexeddb_loaded', messages: []}, '*');
+            };
+        };
+        
+        request.onupgradeneeded = function(event) {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(storeName)) {
+                db.createObjectStore(storeName);
+            }
+        };
+    })();
+    </script>
+    """
+    components.html(load_script, height=0)
 
 
-def load_messages_from_file():
-    """Load messages from file storage"""
-    try:
-        file_path = get_session_file_path()
-        if file_path.exists():
-            with open(file_path, 'r') as f:
-                data = json.load(f)
-                return data.get('messages', [])
-    except Exception as e:
-        print(f"Error loading messages: {e}")
-    return []
+def save_messages_to_indexeddb(messages):
+    """Save messages to browser IndexedDB"""
+    messages_json = json.dumps(messages).replace("'", "\\'")
+    save_script = f"""
+    <script>
+    (function() {{
+        const dbName = 'TalentScoutDB';
+        const storeName = 'conversations';
+        const messages = {messages_json};
+        
+        const request = indexedDB.open(dbName, 1);
+        
+        request.onsuccess = function(event) {{
+            const db = event.target.result;
+            const transaction = db.transaction([storeName], 'readwrite');
+            const objectStore = transaction.objectStore(storeName);
+            objectStore.put({{messages: messages, timestamp: new Date().toISOString()}}, 'current_conversation');
+        }};
+        
+        request.onupgradeneeded = function(event) {{
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(storeName)) {{
+                db.createObjectStore(storeName);
+            }}
+        }};
+    }})();
+    </script>
+    """
+    components.html(save_script, height=0)
 
 
-def save_messages_to_file(messages):
-    """Save messages to file storage"""
-    try:
-        file_path = get_session_file_path()
-        with open(file_path, 'w') as f:
-            json.dump({'messages': messages, 'timestamp': datetime.now().isoformat()}, f)
-    except Exception as e:
-        print(f"Error saving messages: {e}")
-
-
-def clear_session_file():
-    """Clear session file"""
-    try:
-        file_path = get_session_file_path()
-        if file_path.exists():
-            file_path.unlink()
-    except Exception as e:
-        print(f"Error clearing session: {e}")
+def clear_indexeddb():
+    """Clear conversation history from IndexedDB"""
+    clear_script = """
+    <script>
+    (function() {
+        const dbName = 'TalentScoutDB';
+        const storeName = 'conversations';
+        
+        const request = indexedDB.open(dbName, 1);
+        
+        request.onsuccess = function(event) {
+            const db = event.target.result;
+            const transaction = db.transaction([storeName], 'readwrite');
+            const objectStore = transaction.objectStore(storeName);
+            objectStore.delete('current_conversation');
+            console.log('Conversation history cleared from IndexedDB');
+        };
+    })();
+    </script>
+    """
+    components.html(clear_script, height=0)
 
 
 def initialize_session_state():
