@@ -64,39 +64,11 @@ st.markdown("""
         border-bottom: 1px solid #444654;
     }
     
-    /* Typing Effect for TalentScout - Types once on load */
-    .typing-text {
+    /* TalentScout text styling - no animation */
+    .app-title {
         display: inline-block;
-        overflow: hidden;
-        border-right: 3px solid #10a37f;
-        white-space: nowrap;
-        width: 0;
-        animation: typing 2s steps(12) 0.5s forwards, blink-caret 0.75s step-end infinite;
-        min-width: 180px; /* Reserve space to prevent layout shift */
-    }
-    
-    @keyframes typing {
-        from {
-            width: 0;
-        }
-        to {
-            width: 100%;
-        }
-    }
-    
-    @keyframes blink-caret {
-        from, to {
-            border-right-color: transparent;
-        }
-        50% {
-            border-right-color: #10a37f;
-        }
-    }
-    
-    /* Stop cursor blinking after typing completes */
-    .typing-text.typed {
-        border-right-color: transparent;
-        animation: none;
+        color: #10a37f;
+        font-weight: 700;
     }
     
     /* Mobile responsive */
@@ -104,11 +76,6 @@ st.markdown("""
         .main-header {
             font-size: 1.25rem;
             padding: 1rem 0.5rem 0.75rem 0.5rem;
-        }
-        
-        .typing-text {
-            border-right-width: 2px;
-            min-width: 140px;
         }
     }
     
