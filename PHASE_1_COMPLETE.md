@@ -55,7 +55,7 @@
 ## 🌐 Preview Access
 
 Your Streamlit chatbot is now accessible at:
-**https://streamlit-deploy.preview.emergentagent.com**
+**https://talentscout-ai-4.preview.emergentagent.com**
 
 (Your Emergent preview URL - Streamlit is running on port 3000)
 
