@@ -119,6 +119,12 @@ st.markdown("""
         margin-bottom: 1rem;
         font-weight: 400;
         padding: 0 1rem;
+        position: sticky;
+        top: 70px;
+        background: #343541;
+        z-index: 999;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
     }
     
     /* Mobile responsiveness for sub-header */
@@ -127,6 +133,7 @@ st.markdown("""
             font-size: 0.8rem;
             padding: 0 0.5rem;
             margin-bottom: 0.75rem;
+            top: 55px;
         }
     }
     
