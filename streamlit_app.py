@@ -647,9 +647,23 @@ def main():
     # Initialize
     initialize_session_state()
     
-    # Header - ChatGPT Style
+    # Header - ChatGPT Style with Typing Effect on TalentScout
     st.markdown(
-        f'<h1 class="main-header">{settings.app_title}</h1>', 
+        '''
+        <h1 class="main-header">
+            <span class="typing-text" id="typingText">TalentScout</span>
+            <span> AI Hiring Assistant</span>
+        </h1>
+        <script>
+            // Remove cursor after typing animation completes
+            setTimeout(function() {
+                var elem = document.getElementById('typingText');
+                if (elem) {
+                    elem.classList.add('typing-complete');
+                }
+            }, 3200);
+        </script>
+        ''', 
         unsafe_allow_html=True
     )
     st.markdown(
