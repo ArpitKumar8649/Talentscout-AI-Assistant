@@ -170,61 +170,24 @@ st.markdown("""
         background: #ab68ff !important;
     }
     
-    /* Sidebar Styling - Dark Mode */
+    /* Hide Sidebar Completely */
     [data-testid="stSidebar"] {
-        background: #202123;
-        border-right: 1px solid #2d2d30;
+        display: none !important;
     }
     
-    [data-testid="stSidebar"] * {
-        color: #ececf1 !important;
+    /* Hide sidebar collapse button */
+    [data-testid="collapsedControl"] {
+        display: none !important;
     }
     
-    [data-testid="stSidebar"] h1,
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3 {
-        color: #ffffff !important;
-    }
-    
-    .sidebar-header {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #ffffff !important;
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid #4d4d4f;
-    }
-    
-    /* Info Cards in Sidebar */
-    .info-card {
-        background: #2d2d30;
-        border-radius: 8px;
-        padding: 0.875rem;
-        margin: 0.75rem 0;
-        border: 1px solid #4d4d4f;
-    }
-    
-    .info-label {
-        font-size: 0.75rem;
-        color: #8e8ea0 !important;
-        font-weight: 500;
-        margin-bottom: 0.375rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    
-    .info-value {
-        font-size: 0.875rem;
-        color: #ececf1 !important;
-        font-weight: 400;
-    }
-    
-    /* Connection Status Badge */
+    /* Connection Status Badge - Inline Display */
     .connection-status {
-        padding: 0.75rem;
+        padding: 0.5rem 1rem;
         border-radius: 6px;
-        margin: 0.75rem 0;
+        margin: 0.5rem auto;
         font-size: 0.875rem;
+        max-width: 400px;
+        text-align: center;
     }
     
     .status-connected {
