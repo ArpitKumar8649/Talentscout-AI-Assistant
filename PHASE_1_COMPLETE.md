@@ -55,7 +55,7 @@
 ## 🌐 Preview Access
 
 Your Streamlit chatbot is now accessible at:
-**https://scout-type-effect.preview.emergentagent.com**
+**https://streamlit-deploy.preview.emergentagent.com**
 
 (Your Emergent preview URL - Streamlit is running on port 3000)
 
