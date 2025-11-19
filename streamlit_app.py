@@ -32,8 +32,73 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS - ChatGPT Style
+# IndexedDB Bridge Script - Injects into page head
 st.markdown("""
+<script>
+// TalentScout IndexedDB Manager
+window.talentScoutDB = {
+    dbName: 'TalentScoutDB',
+    storeName: 'conversations',
+    
+    init: function() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, 1);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(this.storeName)) {
+                    db.createObjectStore(this.storeName);
+                }
+            };
+        });
+    },
+    
+    save: function(messages) {
+        this.init().then(db => {
+            const transaction = db.transaction([this.storeName], 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            store.put({messages: messages, timestamp: new Date().toISOString()}, 'current');
+            console.log('Saved to IndexedDB:', messages.length, 'messages');
+        }).catch(err => console.error('Save error:', err));
+    },
+    
+    load: function() {
+        return this.init().then(db => {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([this.storeName], 'readonly');
+                const store = transaction.objectStore(this.storeName);
+                const request = store.get('current');
+                request.onsuccess = () => {
+                    const data = request.result;
+                    resolve(data ? data.messages : []);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        });
+    },
+    
+    clear: function() {
+        this.init().then(db => {
+            const transaction = db.transaction([this.storeName], 'readwrite');
+            const store = transaction.objectStore(this.storeName);
+            store.delete('current');
+            console.log('Cleared IndexedDB');
+        }).catch(err => console.error('Clear error:', err));
+    }
+};
+
+// Auto-load on page load
+window.addEventListener('load', function() {
+    window.talentScoutDB.load().then(messages => {
+        if (messages && messages.length > 0) {
+            sessionStorage.setItem('_talentscout_restore', JSON.stringify(messages));
+            console.log('Loaded from IndexedDB:', messages.length, 'messages');
+        }
+    });
+});
+</script>
+
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
