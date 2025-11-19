@@ -679,8 +679,8 @@ def main():
     # Initialize
     initialize_session_state()
     
-    # Export buttons in top right corner
-    col1, col2, col3 = st.columns([6, 1, 1])
+    # Export buttons and Clear Chat in top right corner
+    col1, col2, col3, col4 = st.columns([5, 1, 1, 1])
     
     with col2:
         if st.session_state.messages:
@@ -705,6 +705,13 @@ def main():
                     mime="text/markdown",
                     help="Export chat as Markdown file"
                 )
+    
+    with col4:
+        if st.session_state.messages:
+            if st.button("🗑️ Clear", help="Clear chat history"):
+                st.session_state.messages = []
+                clear_session_file()
+                st.rerun()
     
     # Header - Clean and Simple
     st.markdown(
