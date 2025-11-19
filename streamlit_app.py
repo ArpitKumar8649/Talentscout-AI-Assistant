@@ -199,6 +199,39 @@ st.markdown("""
         color: #fee2e2 !important;
     }
     
+    /* Export Button Container */
+    .export-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1001;
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    /* Export Buttons */
+    .stButton button {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        background: #10a37f;
+        border: none;
+        color: white;
+        border-radius: 6px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    
+    .stButton button:hover {
+        background: #0d8a6a;
+    }
+    
+    @media (max-width: 768px) {
+        .export-container {
+            top: 10px;
+            right: 10px;
+        }
+    }
+    
     /* Reasoning Message - Dark Theme */
     .reasoning-message {
         font-style: italic;
