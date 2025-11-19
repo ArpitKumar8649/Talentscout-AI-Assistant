@@ -59,6 +59,47 @@ st.markdown("""
         letter-spacing: -0.3px;
     }
     
+    /* Typing Effect for TalentScout */
+    .typing-text {
+        display: inline-block;
+        overflow: hidden;
+        border-right: 3px solid #10a37f;
+        white-space: nowrap;
+        animation: typing 3s steps(12, end) 1s 1 normal both,
+                   blink-caret 0.75s step-end infinite;
+        animation-delay: 0s, 0s;
+    }
+    
+    @keyframes typing {
+        from {
+            width: 0;
+        }
+        to {
+            width: 100%;
+        }
+    }
+    
+    @keyframes blink-caret {
+        from, to {
+            border-color: transparent;
+        }
+        50% {
+            border-color: #10a37f;
+        }
+    }
+    
+    /* Stop blinking after typing completes */
+    @keyframes stop-blink {
+        to {
+            border-color: transparent;
+        }
+    }
+    
+    .typing-text.typing-complete {
+        border-right: none;
+        animation: none;
+    }
+    
     .sub-header {
         font-size: 0.875rem;
         color: #9ca3af;
