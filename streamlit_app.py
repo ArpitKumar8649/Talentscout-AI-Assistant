@@ -40,12 +40,12 @@ st.markdown("""
     
     /* Main App Background - Dark Theme */
     .stApp {
-        background: #343541;
+        background: #1a1a1a;
     }
     
     /* Main Content Area */
     section[data-testid="stAppViewContainer"] {
-        background: #343541;
+        background: #1a1a1a;
         padding-top: 0 !important;
     }
     
