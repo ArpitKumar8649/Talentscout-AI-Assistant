@@ -611,22 +611,13 @@ def main():
     # Initialize
     initialize_session_state()
     
-    # Header - ChatGPT Style with Typing Effect on TalentScout
+    # Header - ChatGPT Style with Typing Effect on TalentScout (runs once)
     st.markdown(
         '''
         <h1 class="main-header">
-            <span class="typing-text" id="typingText">TalentScout</span>
+            <span class="typing-text">TalentScout</span>
             <span> AI Hiring Assistant</span>
         </h1>
-        <script>
-            // Remove cursor after typing animation completes
-            setTimeout(function() {
-                var elem = document.getElementById('typingText');
-                if (elem) {
-                    elem.classList.add('typing-complete');
-                }
-            }, 3200);
-        </script>
         ''', 
         unsafe_allow_html=True
     )
@@ -639,10 +630,17 @@ def main():
     if not st.session_state.letta_connected:
         connect_to_letta()
     
-    # Render sidebar
-    render_sidebar()
-    
-    # Main chat interface - no subtitle for cleaner look
+    # Show connection status inline
+    if st.session_state.letta_connected:
+        st.markdown(
+            '<div class="connection-status status-connected">✓ AI Agent Connected</div>',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            '<div class="connection-status status-error">⚠ Connection Error</div>',
+            unsafe_allow_html=True
+        )
     
     # Display chat history
     for message in st.session_state.messages:
