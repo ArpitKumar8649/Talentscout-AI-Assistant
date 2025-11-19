@@ -739,27 +739,42 @@ def main():
     # Initialize
     initialize_session_state()
     
-    # Load messages from IndexedDB on first load using query params
-    query_params = st.query_params
-    
-    if not st.session_state.indexeddb_checked:
-        # Try to load from IndexedDB
-        loaded_data = load_and_inject_messages()
+    # Check for messages to restore from IndexedDB (via sessionStorage bridge)
+    if not st.session_state.indexeddb_checked and len(st.session_state.messages) == 0:
+        # Use a component to check sessionStorage
+        check_script = """
+        <script>
+        const restored = sessionStorage.getItem('_talentscout_restore');
+        if (restored) {
+            try {
+                const messages = JSON.parse(restored);
+                // Trigger a Streamlit rerun with the data
+                const url = new URL(window.location);
+                url.searchParams.set('_restore', encodeURIComponent(restored));
+                window.location.href = url.toString();
+            } catch(e) {
+                console.error('Restore error:', e);
+            }
+        }
+        </script>
+        """
+        components.html(check_script, height=0)
         st.session_state.indexeddb_checked = True
-        
-        # Check if we have a load trigger from query params
-        if 'loaded' in query_params and len(st.session_state.messages) == 0:
-            try:
-                messages_param = query_params.get('loaded', '')
-                if messages_param:
-                    loaded_messages = json.loads(messages_param)
-                    if loaded_messages and isinstance(loaded_messages, list):
-                        st.session_state.messages = loaded_messages
-                        # Clear the query param
-                        st.query_params.clear()
-                        st.rerun()
-            except:
-                pass
+    
+    # Check if we have messages to restore from URL
+    query_params = st.query_params
+    if '_restore' in query_params:
+        try:
+            restored_data = query_params['_restore']
+            messages = json.loads(restored_data)
+            if messages and isinstance(messages, list) and len(messages) > 0:
+                st.session_state.messages = messages
+                # Clear the query param and sessionStorage
+                del st.query_params['_restore']
+                components.html('<script>sessionStorage.removeItem("_talentscout_restore");</script>', height=0)
+                st.rerun()
+        except Exception as e:
+            print(f"Error restoring messages: {e}")
     
     # Export buttons and New Chat in top right corner
     col1, col2, col3, col4 = st.columns([5, 1, 1, 1])
