@@ -443,7 +443,13 @@ def clear_session_file():
 
 def initialize_session_state():
     """Initialize Streamlit session state with persistent storage"""
-    if 'messages' not in st.session_state:
+    
+    # Load messages from file on first run
+    if 'messages_loaded' not in st.session_state:
+        st.session_state.messages_loaded = True
+        loaded_messages = load_messages_from_file()
+        st.session_state.messages = loaded_messages if loaded_messages else []
+    elif 'messages' not in st.session_state:
         st.session_state.messages = []
     
     if 'letta_connected' not in st.session_state:
@@ -460,13 +466,6 @@ def initialize_session_state():
     
     if 'agent_info' not in st.session_state:
         st.session_state.agent_info = None
-    
-    if 'messages_loaded' not in st.session_state:
-        st.session_state.messages_loaded = False
-    
-    if 'storage_key' not in st.session_state:
-        # Generate unique storage key per session
-        st.session_state.storage_key = f"talentscout_{int(time.time())}"
 
 
 def export_chat_as_txt():
